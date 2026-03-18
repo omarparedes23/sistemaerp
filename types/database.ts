@@ -101,41 +101,51 @@ export type Database = {
         Row: Category;
         Insert: Omit<Category, "id" | "created_at">;
         Update: Partial<Omit<Category, "id" | "created_at">>;
+        Relationships: [];
       };
       brands: {
         Row: Brand;
         Insert: Omit<Brand, "id" | "created_at">;
         Update: Partial<Omit<Brand, "id" | "created_at">>;
+        Relationships: [];
       };
       units: {
         Row: Unit;
         Insert: Omit<Unit, "id">;
         Update: Partial<Omit<Unit, "id">>;
+        Relationships: [];
       };
       warehouses: {
         Row: Warehouse;
         Insert: Omit<Warehouse, "id">;
         Update: Partial<Omit<Warehouse, "id">>;
+        Relationships: [];
       };
       productos: {
         Row: Product;
         Insert: Omit<Product, "id" | "created_at" | "updated_at">;
         Update: Partial<Omit<Product, "id" | "created_at" | "updated_at">>;
+        Relationships: [];
       };
       stock_levels: {
         Row: StockLevel;
         Insert: StockLevel;
         Update: Partial<StockLevel>;
+        Relationships: [];
       };
       inventory_movements: {
         Row: InventoryMovement;
         Insert: Omit<InventoryMovement, "id" | "created_at" | "user_id">;
-        Update: never; // Los movimientos son inmutables
+        Update: never;
+        Relationships: [];
       };
     };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
     Enums: {
       movement_type: MovementType;
       movement_reason: MovementReason;
     };
+    CompositeTypes: Record<string, never>;
   };
 };
