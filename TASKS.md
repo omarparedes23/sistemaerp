@@ -41,19 +41,43 @@
 [ ] Reporte de Stocks: Vista tipo tabla dinámica: Producto | Almacén | Stock Actual con filtros por almacén.
 
 ## Fase 3: Módulo de Ventas (Facturación)
-3.1 Gestión de Clientes
-[ ] Clientes: CRUD completo (RUC/DNI, Razón Social, Dirección).
 
-3.2 Emisión de Comprobantes
-[ ] Nueva Venta: Formulario para emitir Factura/Boleta.
+3.1 Planificación y Base de Datos
+[x] Definir tablas: clients, sales_header, sales_items en DATABASE.sql.
+[x] Crear migration_phase3_ventas.sql con ENUMs, tablas y trigger fn_create_movement_on_sale.
+[x] Documentar lógica de negocio en SPEC.md (OUT/SALE y NC/RETURN automáticos).
+[x] Actualizar TASKS.md con el roadmap completo de Fase 3.
 
-[ ] Selección de cliente y almacén de salida.
+3.2 Gestión de Clientes
+[x] Actualizar types/database.ts: añadir Client, SalesHeader, SalesItem y tipos Database.
+[x] Crear schemas/clients.ts con validación Zod (type, number, name, address, email, phone).
+[x] Crear actions/clients.ts: getClients, createClient, updateClient, deleteClient.
+[x] Crear components/modules/ventas/client-dialog.tsx (Dialog create/edit con useActionState).
+[x] Crear app/(dashboard)/ventas/clientes/page.tsx (Server Component, tabla con acciones).
+[x] Agregar grupo "Ventas" con ítem "Clientes" al Sidebar.
 
-[ ] Selección de productos (Validar stock disponible en tiempo real).
+3.3 Emisión de Comprobantes
+[ ] Crear app/(dashboard)/ventas/nueva/page.tsx: Formulario Maestro-Detalle (Factura/Boleta).
+    [ ] Selección de cliente (búsqueda por RUC/DNI o nombre).
+    [ ] Selección de almacén de salida.
+    [ ] Selección de tipo de comprobante (Factura / Boleta), serie y número correlativo.
+    [ ] Tabla de ítems: buscador de productos, cantidad, precio unitario, total_line.
+    [ ] Cálculo en tiempo real de subtotal, IGV (18%) y total.
+    [ ] Validación de stock disponible antes de guardar.
+    [ ] Al guardar: insertar sales_header + sales_items (el trigger genera los movimientos OUT).
+[ ] Crear actions/sales.ts: createSale (transacción: cabecera + ítems).
 
-[ ] Al guardar: Generar movimiento 'OUT' motivo 'SALE'.
+3.4 Gestión de Correlativos
+[ ] Crear tabla series_config (doc_type, series, last_number) — migración adicional.
+[ ] CRUD de series en /ventas/correlativos.
+[ ] Al emitir, auto-incrementar el correlativo y pre-rellenar el campo number.
 
-[ ] Gestión de Correlativos: Tabla para controlar el número de factura que sigue (ej: F001-00045).
+3.5 Anulación / Notas de Crédito
+[ ] Botón "Anular" en el listado de ventas.
+[ ] Cambia status a 'Annulled' y elimina sales_items (trigger devuelve stock con IN/SALE NC:).
+
+3.6 Listado de Ventas
+[ ] Crear app/(dashboard)/ventas/page.tsx: tabla con filtros por fecha, cliente y estado.
 
 ## Fase 4: Auditoría y Kardex
 [ ] Kardex: Ver la "historia" de un solo producto (Entró 10 por compra, salió 2 por venta, saldo 8).

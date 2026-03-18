@@ -30,3 +30,29 @@
 - **Editar**: `/almacenes/ingresos/[id]/editar` → `IngresoForm` en modo `edit` con `serverAction` y `initialData`.
 - `IngresoForm` acepta `mode`, `initialData` y `serverAction` para reutilización en ambos casos.
 - `unit_cost` es obligatorio en cada ítem del ingreso (costo unitario al momento del movimiento).
+
+## Módulo de Ventas — Estructura
+- **Listado**: `/ventas` → `VentasPage` (Server Component, tabla de comprobantes).
+- **Crear**: `/ventas/nueva` → `SaleForm` — formulario maestro-detalle.
+- **Clientes**: `/ventas/clientes` → CRUD con `ClientDialog`.
+- **Correlativos**: `/ventas/correlativos` → CRUD con `SequenceDialog`.
+
+## Módulo de Ventas — Lógica de IGV
+- **Factura**: precios SIN IGV. `subtotal = Σ(qty × price)`, `tax_total = subtotal × 0.18`, `total = subtotal + tax_total`.
+- **Boleta**: precios CON IGV incluido. `total = Σ(qty × price)`, `subtotal = total / 1.18`, `tax_total = total − subtotal`.
+- Redondear siempre a 2 decimales usando `Math.round(x * 100) / 100`.
+
+## Módulo de Ventas — Validación de Stock
+- Antes de insertar en `sales_header`, la Server Action `createSale` consulta `stock_levels` para el `warehouse_id` seleccionado y verifica que cada ítem tenga stock suficiente.
+- Si falla, retorna error con nombre del producto y stock disponible.
+- El formulario (`SaleForm`) también valida client-side con el `stockMap` precargado y deshabilita el botón "Emitir" mientras haya ítems con stock insuficiente.
+
+## Módulo de Ventas — Correlativos
+- `document_sequences`: tabla `(doc_type, series, current_number, is_automatic, is_active)`.
+- `is_automatic = true`: el formulario sugiere `current_number + 1` y bloquea el campo. Al guardar llama a `bumpSequenceNumber(sequenceId)`.
+- `is_automatic = false`: el usuario escribe el número manualmente (contingencia / talonarios físicos).
+
+## Módulo de Ventas — Flujo del Trigger
+- Al insertar en `sales_items` → trigger `fn_create_movement_on_sale` genera un movimiento `OUT / SALE` automáticamente en `inventory_movements`.
+- Al eliminar ítems (anulación) → el mismo trigger genera un movimiento `IN / SALE` con prefijo `"NC: "`.
+- Nunca insertar en `inventory_movements` directamente desde la Server Action de ventas.

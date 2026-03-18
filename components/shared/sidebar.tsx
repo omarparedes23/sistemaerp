@@ -12,6 +12,11 @@ import {
   Ruler,
   ChevronDown,
   Building2,
+  ShoppingCart,
+  Users,
+  FilePlus2,
+  Hash,
+  ClipboardList,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,6 +38,32 @@ type NavGroup = {
 };
 
 const navigation: NavGroup[] = [
+  {
+    label: "Ventas",
+    icon: ShoppingCart,
+    items: [
+      {
+        label: "Comprobantes",
+        href: "/ventas",
+        icon: ClipboardList,
+      },
+      {
+        label: "Nueva Venta",
+        href: "/ventas/nueva",
+        icon: FilePlus2,
+      },
+      {
+        label: "Clientes",
+        href: "/ventas/clientes",
+        icon: Users,
+      },
+      {
+        label: "Correlativos",
+        href: "/ventas/correlativos",
+        icon: Hash,
+      },
+    ],
+  },
   {
     label: "Almacenes",
     icon: Warehouse,
@@ -161,7 +192,7 @@ export function Sidebar() {
       {/* Pie del sidebar */}
       <div className="border-t border-sidebar-border px-3 py-3">
         <p className="px-3 text-[10px] text-sidebar-foreground/30">
-          v0.1.0 — Fase 1
+          v0.3.0 — Fase 3
         </p>
       </div>
     </aside>

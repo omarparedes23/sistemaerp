@@ -10,6 +10,11 @@ export type MovementReason =
   | "INITIAL_LOAD"
   | "TRANSFER";
 
+// ─── Ventas ───────────────────────────────────────────────────────────────────
+export type ClientDocType = "DNI" | "RUC" | "Otros";
+export type SaleDocType   = "Factura" | "Boleta";
+export type SaleStatus    = "Paid" | "Annulled";
+
 // ─── Tablas maestras ──────────────────────────────────────────────────────────
 
 export interface Category {
@@ -91,6 +96,64 @@ export interface InventoryMovement {
 export interface InventoryMovementWithRelations extends InventoryMovement {
   product: Product;
   warehouse: Warehouse;
+}
+
+// ─── Clientes ─────────────────────────────────────────────────────────────────
+
+export interface Client {
+  id: number;
+  type: ClientDocType;
+  number: string;
+  name: string;
+  address: string | null;
+  email: string | null;
+  phone: string | null;
+  created_at: string;
+}
+
+// ─── Ventas ───────────────────────────────────────────────────────────────────
+
+export interface SalesHeader {
+  id: number;
+  client_id: number;
+  warehouse_id: number;
+  doc_type: SaleDocType;
+  series: string;
+  number: string;
+  status: SaleStatus;
+  subtotal: number;
+  tax_total: number;
+  total: number;
+  created_at: string;
+}
+
+export interface SalesHeaderWithRelations extends SalesHeader {
+  client: Pick<Client, "id" | "name" | "number">;
+  warehouse: Pick<Warehouse, "id" | "name">;
+}
+
+export interface SalesItem {
+  id: number;
+  sale_id: number;
+  product_id: number;
+  quantity: number;
+  unit_price: number;
+  total_line: number;
+}
+
+export interface SalesItemWithRelations extends SalesItem {
+  product: Pick<Product, "id" | "sku" | "name">;
+}
+
+// ─── Correlativos ─────────────────────────────────────────────────────────────
+
+export interface DocumentSequence {
+  id: number;
+  doc_type: SaleDocType;
+  series: string;
+  current_number: number;
+  is_automatic: boolean;
+  is_active: boolean;
 }
 
 // ─── Tipos para Database (formato compatible con Supabase CLI) ────────────────
@@ -318,6 +381,165 @@ export type Database = {
           },
         ];
       };
+      clients: {
+        Row: {
+          id: number;
+          type: ClientDocType;
+          number: string;
+          name: string;
+          address: string | null;
+          email: string | null;
+          phone: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          type: ClientDocType;
+          number: string;
+          name: string;
+          address?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          type?: ClientDocType;
+          number?: string;
+          name?: string;
+          address?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      sales_header: {
+        Row: {
+          id: number;
+          client_id: number;
+          warehouse_id: number;
+          doc_type: SaleDocType;
+          series: string;
+          number: string;
+          status: SaleStatus;
+          subtotal: number;
+          tax_total: number;
+          total: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          client_id: number;
+          warehouse_id: number;
+          doc_type: SaleDocType;
+          series: string;
+          number: string;
+          status?: SaleStatus;
+          subtotal: number;
+          tax_total: number;
+          total: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          client_id?: number;
+          warehouse_id?: number;
+          doc_type?: SaleDocType;
+          series?: string;
+          number?: string;
+          status?: SaleStatus;
+          subtotal?: number;
+          tax_total?: number;
+          total?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sales_header_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sales_header_warehouse_id_fkey";
+            columns: ["warehouse_id"];
+            isOneToOne: false;
+            referencedRelation: "warehouses";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sales_items: {
+        Row: {
+          id: number;
+          sale_id: number;
+          product_id: number;
+          quantity: number;
+          unit_price: number;
+          total_line: number;
+        };
+        Insert: {
+          id?: number;
+          sale_id: number;
+          product_id: number;
+          quantity: number;
+          unit_price: number;
+          total_line: number;
+        };
+        Update: {
+          id?: number;
+          sale_id?: number;
+          product_id?: number;
+          quantity?: number;
+          unit_price?: number;
+          total_line?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sales_items_sale_id_fkey";
+            columns: ["sale_id"];
+            isOneToOne: false;
+            referencedRelation: "sales_header";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sales_items_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "productos";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      document_sequences: {
+        Row: {
+          id: number;
+          doc_type: SaleDocType;
+          series: string;
+          current_number: number;
+          is_automatic: boolean;
+          is_active: boolean;
+        };
+        Insert: {
+          id?: number;
+          doc_type: SaleDocType;
+          series: string;
+          current_number?: number;
+          is_automatic?: boolean;
+          is_active?: boolean;
+        };
+        Update: {
+          id?: number;
+          doc_type?: SaleDocType;
+          series?: string;
+          current_number?: number;
+          is_automatic?: boolean;
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -328,6 +550,9 @@ export type Database = {
     Enums: {
       movement_type: MovementType;
       movement_reason: MovementReason;
+      client_doc_type: ClientDocType;
+      sale_doc_type: SaleDocType;
+      sale_status: SaleStatus;
     };
     CompositeTypes: {
       [_ in never]: never;
