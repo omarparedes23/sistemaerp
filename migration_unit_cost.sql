@@ -1,77 +1,19 @@
 -- ═══════════════════════════════════════════════════════════════════════════════
--- ESQUEMA COMPLETO — ERP Modular
--- Última actualización: 2026-03-18
+-- MIGRACIÓN: Gestión de Costos y Edición de Ingresos
+-- Fecha: 2026-03-18
+-- Descripción: Agrega unit_cost a inventory_movements y actualiza el trigger
+--              para manejar INSERT, UPDATE y DELETE con recálculo de stock.
 -- ═══════════════════════════════════════════════════════════════════════════════
 
--- 1. Tablas de Clasificación
-CREATE TABLE categories (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- ─── 1. Agregar columna unit_cost ─────────────────────────────────────────────
+ALTER TABLE inventory_movements
+  ADD COLUMN IF NOT EXISTS unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0;
 
-CREATE TABLE brands (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+-- ─── 2. Eliminar trigger y función anteriores ──────────────────────────────────
+DROP TRIGGER IF EXISTS trg_after_inventory_movement ON inventory_movements;
+DROP FUNCTION IF EXISTS fn_update_stock_on_movement();
 
-CREATE TABLE units (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE, -- ej: Unidades, Litros, Kilos
-    abbreviation TEXT NOT NULL  -- ej: UND, LTS, KGS
-);
-
--- 2. Maestro de Productos
-CREATE TABLE productos (
-    id SERIAL PRIMARY KEY,
-    sku TEXT NOT NULL UNIQUE, -- Identificador comercial único
-    name TEXT NOT NULL,
-    description TEXT,
-    category_id INTEGER REFERENCES categories(id),
-    brand_id INTEGER REFERENCES brands(id),
-    unit_id INTEGER REFERENCES units(id),
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 3. Almacenes
-CREATE TABLE warehouses (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    location TEXT,
-    is_active BOOLEAN DEFAULT TRUE
-);
-
--- 4. Niveles de Stock (Saldos actuales — calculados por trigger)
-CREATE TABLE stock_levels (
-    product_id INTEGER REFERENCES productos(id),
-    warehouse_id INTEGER REFERENCES warehouses(id),
-    current_stock DECIMAL(12,2) DEFAULT 0,
-    PRIMARY KEY (product_id, warehouse_id)
-);
-
--- 5. Historial de Movimientos
-CREATE TYPE movement_type AS ENUM ('IN', 'OUT');
-CREATE TYPE movement_reason AS ENUM (
-    'PURCHASE', 'SALE', 'ADJUSTMENT',
-    'INVENTORY_COUNT', 'INITIAL_LOAD', 'TRANSFER'
-);
-
-CREATE TABLE inventory_movements (
-    id SERIAL PRIMARY KEY,
-    product_id INTEGER REFERENCES productos(id),
-    warehouse_id INTEGER REFERENCES warehouses(id),
-    quantity DECIMAL(12,2) NOT NULL,
-    unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0, -- Costo unitario al momento del movimiento
-    type movement_type NOT NULL,
-    reason movement_reason NOT NULL,
-    document_ref TEXT,             -- Referencia a Factura, Guía o Ticket
-    user_id UUID DEFAULT auth.uid(), -- ID del usuario en Supabase Auth
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- 6. Trigger para actualizar stock automáticamente en INSERT, UPDATE y DELETE
+-- ─── 3. Nueva función: maneja INSERT, UPDATE y DELETE ─────────────────────────
 CREATE OR REPLACE FUNCTION fn_update_stock_on_movement()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -137,6 +79,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- ─── 4. Recrear trigger para INSERT, UPDATE y DELETE ──────────────────────────
 CREATE TRIGGER trg_after_inventory_movement
 AFTER INSERT OR UPDATE OR DELETE ON inventory_movements
 FOR EACH ROW

@@ -79,6 +79,7 @@ export interface InventoryMovement {
   product_id: number;
   warehouse_id: number;
   quantity: number;
+  unit_cost: number;           // Costo unitario al momento del movimiento
   type: MovementType;
   reason: MovementReason;
   document_ref: string | null; // Referencia a Factura, Guía o Ticket
@@ -269,6 +270,7 @@ export type Database = {
           product_id: number;
           warehouse_id: number;
           quantity: number;
+          unit_cost: number;
           type: MovementType;
           reason: MovementReason;
           document_ref: string | null;
@@ -280,6 +282,7 @@ export type Database = {
           product_id: number;
           warehouse_id: number;
           quantity: number;
+          unit_cost?: number;
           type: MovementType;
           reason: MovementReason;
           document_ref?: string | null;
@@ -291,6 +294,7 @@ export type Database = {
           product_id?: number;
           warehouse_id?: number;
           quantity?: number;
+          unit_cost?: number;
           type?: MovementType;
           reason?: MovementReason;
           document_ref?: string | null;

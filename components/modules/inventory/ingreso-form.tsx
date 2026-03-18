@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, Loader2, PackagePlus } from "lucide-react";
+import { Plus, Trash2, Loader2, PackagePlus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,15 +14,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createIngreso } from "@/actions/movements";
+import type { ActionState } from "@/actions/brands";
 import type { Product, Warehouse } from "@/types/database";
 
 type ProductOption = Pick<Product, "id" | "sku" | "name">;
 type WarehouseOption = Pick<Warehouse, "id" | "name">;
+type FormAction = (_prevState: ActionState, formData: FormData) => Promise<ActionState>;
 
 interface LineItem {
-  id: number; // clave local para React
+  id: number;
   product_id: string;
   quantity: string;
+  unit_cost: string;
+}
+
+export interface IngresoInitialData {
+  id: number;
+  document_ref: string;
+  warehouse_id: number;
+  reason: string;
+  product_id: number;
+  product_sku: string;
+  product_name: string;
+  quantity: number;
+  unit_cost: number;
 }
 
 const REASONS = [
@@ -34,24 +49,46 @@ const REASONS = [
 
 let nextId = 1;
 function newItem(): LineItem {
-  return { id: nextId++, product_id: "", quantity: "" };
+  return { id: nextId++, product_id: "", quantity: "", unit_cost: "" };
 }
 
 interface IngresoFormProps {
   products: ProductOption[];
   warehouses: WarehouseOption[];
+  mode?: "create" | "edit";
+  initialData?: IngresoInitialData;
+  serverAction?: FormAction;
 }
 
-export function IngresoForm({ products, warehouses }: IngresoFormProps) {
+export function IngresoForm({
+  products,
+  warehouses,
+  mode = "create",
+  initialData,
+  serverAction = createIngreso,
+}: IngresoFormProps) {
   const router = useRouter();
-  const [items, setItems] = useState<LineItem[]>([newItem()]);
-  const [warehouseId, setWarehouseId] = useState("");
-  const [reason, setReason] = useState("");
+
+  const [items, setItems] = useState<LineItem[]>(() =>
+    mode === "edit" && initialData
+      ? [{
+          id: 1,
+          product_id: String(initialData.product_id),
+          quantity: String(initialData.quantity),
+          unit_cost: String(initialData.unit_cost),
+        }]
+      : [newItem()]
+  );
+  const [warehouseId, setWarehouseId] = useState(
+    mode === "edit" && initialData ? String(initialData.warehouse_id) : ""
+  );
+  const [reason, setReason] = useState(
+    mode === "edit" && initialData ? initialData.reason : ""
+  );
   const [formError, setFormError] = useState<string | null>(null);
 
-  const [state, formAction, isPending] = useActionState(createIngreso, null);
+  const [state, formAction, isPending] = useActionState(serverAction, null);
 
-  // Redirigir al listado cuando el ingreso se procesa correctamente
   useEffect(() => {
     if (state?.message) {
       router.push("/almacenes/ingresos");
@@ -75,7 +112,6 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
   function handleSubmit(formData: FormData) {
     setFormError(null);
 
-    // Validaciones locales antes de enviar
     if (!warehouseId) {
       setFormError("Selecciona un almacén de destino");
       return;
@@ -85,14 +121,17 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
       return;
     }
     const validItems = items.filter(
-      (i) => i.product_id !== "" && i.quantity !== "" && Number(i.quantity) > 0
+      (i) =>
+        i.product_id !== "" &&
+        i.quantity !== "" &&
+        Number(i.quantity) > 0 &&
+        i.unit_cost !== ""
     );
     if (validItems.length === 0) {
-      setFormError("Agrega al menos un producto con cantidad válida");
+      setFormError("Agrega al menos un producto con cantidad y costo válidos");
       return;
     }
 
-    // Serializar items y campos de los selects controlados
     formData.set("warehouse_id", warehouseId);
     formData.set("reason", reason);
     formData.set(
@@ -101,6 +140,7 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
         validItems.map((i) => ({
           product_id: Number(i.product_id),
           quantity: Number(i.quantity),
+          unit_cost: Number(i.unit_cost),
         }))
       )
     );
@@ -108,8 +148,19 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
     formAction(formData);
   }
 
-  // Productos ya seleccionados en otras filas (para evitar duplicados)
   const selectedProductIds = new Set(items.map((i) => i.product_id).filter(Boolean));
+
+  // Cálculo del total del documento
+  const validItems = items.filter(
+    (i) => i.product_id && Number(i.quantity) > 0 && i.unit_cost !== ""
+  );
+  const totalUnits = validItems.reduce((sum, i) => sum + Number(i.quantity), 0);
+  const totalCost = validItems.reduce(
+    (sum, i) => sum + Number(i.quantity) * Number(i.unit_cost),
+    0
+  );
+
+  const isEdit = mode === "edit";
 
   return (
     <form action={handleSubmit} className="space-y-6">
@@ -126,6 +177,7 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
               id="document_ref"
               name="document_ref"
               placeholder="ej: F001-00123"
+              defaultValue={initialData?.document_ref ?? ""}
               autoFocus
             />
             {state?.error?.document_ref && (
@@ -179,26 +231,33 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
           <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">
             Productos a Ingresar
           </h3>
-          <Button type="button" variant="outline" size="sm" onClick={addItem}>
-            <Plus className="mr-1.5 h-4 w-4" />
-            Agregar producto
-          </Button>
+          {!isEdit && (
+            <Button type="button" variant="outline" size="sm" onClick={addItem}>
+              <Plus className="mr-1.5 h-4 w-4" />
+              Agregar producto
+            </Button>
+          )}
         </div>
 
         {/* Encabezados de columna */}
-        <div className="grid grid-cols-[1fr_140px_40px] gap-3 px-1">
+        <div className="grid grid-cols-[1fr_110px_130px_40px] gap-3 px-1">
           <span className="text-xs font-medium text-muted-foreground">Producto</span>
           <span className="text-xs font-medium text-muted-foreground">Cantidad</span>
+          <span className="text-xs font-medium text-muted-foreground">Costo Unit. (S/)</span>
           <span />
         </div>
 
         <div className="space-y-3">
           {items.map((item) => (
-            <div key={item.id} className="grid grid-cols-[1fr_140px_40px] items-center gap-3">
+            <div
+              key={item.id}
+              className="grid grid-cols-[1fr_110px_130px_40px] items-center gap-3"
+            >
               {/* Select de producto */}
               <Select
                 value={item.product_id}
                 onValueChange={(val) => updateItem(item.id, "product_id", val)}
+                disabled={isEdit}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Buscar producto..." />
@@ -209,6 +268,7 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
                       key={p.id}
                       value={p.id.toString()}
                       disabled={
+                        !isEdit &&
                         selectedProductIds.has(p.id.toString()) &&
                         item.product_id !== p.id.toString()
                       }
@@ -233,13 +293,24 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
                 className="text-right"
               />
 
+              {/* Costo unitario */}
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={item.unit_cost}
+                onChange={(e) => updateItem(item.id, "unit_cost", e.target.value)}
+                className="text-right"
+              />
+
               {/* Botón eliminar fila */}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => removeItem(item.id)}
-                disabled={items.length === 1}
+                disabled={items.length === 1 || isEdit}
                 className="h-10 w-10 text-muted-foreground hover:text-destructive"
               >
                 <Trash2 className="h-4 w-4" />
@@ -248,16 +319,25 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
           ))}
         </div>
 
-        {/* Resumen rápido */}
-        {items.filter((i) => i.quantity && Number(i.quantity) > 0).length > 0 && (
-          <div className="text-right text-sm text-muted-foreground border-t pt-3">
-            {items.filter((i) => i.product_id && Number(i.quantity) > 0).length} producto
-            {items.filter((i) => i.product_id && Number(i.quantity) > 0).length !== 1 ? "s" : ""} ·{" "}
-            {items
-              .filter((i) => i.product_id && Number(i.quantity) > 0)
-              .reduce((sum, i) => sum + Number(i.quantity), 0)
-              .toFixed(2)}{" "}
-            unidades totales
+        {/* Resumen del documento */}
+        {validItems.length > 0 && (
+          <div className="border-t pt-4 mt-2 space-y-1 text-sm">
+            <div className="flex justify-between text-muted-foreground">
+              <span>
+                {validItems.length} producto{validItems.length !== 1 ? "s" : ""} ·{" "}
+                {totalUnits % 1 === 0 ? totalUnits : totalUnits.toFixed(2)} unidades
+              </span>
+              <span className="font-semibold text-foreground">
+                Total:{" "}
+                <span className="text-green-600 font-bold">
+                  S/{" "}
+                  {totalCost.toLocaleString("es-PE", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
+                </span>
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -281,10 +361,12 @@ export function IngresoForm({ products, warehouses }: IngresoFormProps) {
         <Button type="submit" disabled={isPending} size="lg">
           {isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : isEdit ? (
+            <Pencil className="mr-2 h-4 w-4" />
           ) : (
             <PackagePlus className="mr-2 h-4 w-4" />
           )}
-          Procesar Ingreso
+          {isEdit ? "Guardar Cambios" : "Procesar Ingreso"}
         </Button>
       </div>
     </form>

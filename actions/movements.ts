@@ -11,7 +11,6 @@ export async function createIngreso(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  // Los items llegan serializados como JSON desde el formulario cliente
   let itemsRaw: unknown;
   try {
     itemsRaw = JSON.parse(formData.get("items") as string);
@@ -32,11 +31,11 @@ export async function createIngreso(
 
   const { document_ref, warehouse_id, reason, items } = parsed.data;
 
-  // Construir todos los movimientos para un insert bulk
   const movements = items.map((item) => ({
     product_id: item.product_id,
     warehouse_id,
     quantity: item.quantity,
+    unit_cost: item.unit_cost,
     type: "IN" as const,
     reason,
     document_ref,
@@ -49,7 +48,6 @@ export async function createIngreso(
     return { error: { document_ref: [error.message] } };
   }
 
-  // El trigger fn_update_stock_on_movement actualiza stock_levels automáticamente
   revalidatePath("/almacenes/ingresos");
   revalidatePath("/almacenes/stocks");
   return { message: "Ingreso procesado correctamente" };
@@ -66,6 +64,7 @@ export async function getIngresos(limit = 100) {
       id,
       document_ref,
       quantity,
+      unit_cost,
       reason,
       created_at,
       product:productos(id, sku, name),
@@ -77,4 +76,78 @@ export async function getIngresos(limit = 100) {
 
   if (error) throw new Error(error.message);
   return data ?? [];
+}
+
+// ─── Leer un movimiento por ID (para edición) ─────────────────────────────────
+
+export async function getIngreso(id: number) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("inventory_movements")
+    .select(`
+      id,
+      document_ref,
+      quantity,
+      unit_cost,
+      reason,
+      warehouse_id,
+      product_id,
+      product:productos(id, sku, name),
+      warehouse:warehouses(id, name)
+    `)
+    .eq("id", id)
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+// ─── Actualizar un movimiento existente ───────────────────────────────────────
+
+export async function updateIngreso(
+  id: number,
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  let itemsRaw: unknown;
+  try {
+    itemsRaw = JSON.parse(formData.get("items") as string);
+  } catch {
+    return { error: { document_ref: ["Error al procesar los productos"] } };
+  }
+
+  const parsed = ingresoSchema.safeParse({
+    document_ref: formData.get("document_ref"),
+    warehouse_id: Number(formData.get("warehouse_id")),
+    reason: formData.get("reason"),
+    items: itemsRaw,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors };
+  }
+
+  const { document_ref, warehouse_id, reason, items } = parsed.data;
+  const item = items[0];
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("inventory_movements")
+    .update({
+      document_ref,
+      warehouse_id,
+      reason,
+      quantity: item.quantity,
+      unit_cost: item.unit_cost,
+    })
+    .eq("id", id);
+
+  if (error) {
+    return { error: { document_ref: [error.message] } };
+  }
+
+  revalidatePath("/almacenes/ingresos");
+  revalidatePath("/almacenes/stocks");
+  return { message: "Ingreso actualizado correctamente" };
 }

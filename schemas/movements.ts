@@ -9,6 +9,10 @@ export const ingresoItemSchema = z.object({
     .number({ invalid_type_error: "Ingresa una cantidad válida" })
     .positive("La cantidad debe ser mayor a 0")
     .multipleOf(0.01, "Máximo 2 decimales"),
+  unit_cost: z
+    .number({ invalid_type_error: "Ingresa un costo válido" })
+    .min(0, "El costo no puede ser negativo")
+    .multipleOf(0.01, "Máximo 2 decimales"),
 });
 
 export const ingresoSchema = z.object({

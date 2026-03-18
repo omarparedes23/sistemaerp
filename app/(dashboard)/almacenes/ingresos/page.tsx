@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ArrowDownToLine, PackagePlus } from "lucide-react";
+import { ArrowDownToLine, PackagePlus, Pencil } from "lucide-react";
 
 export const metadata: Metadata = { title: "Ingresos" };
 
@@ -61,52 +61,81 @@ export default async function IngresosPage() {
                 <TableHead>Producto</TableHead>
                 <TableHead>Almacén</TableHead>
                 <TableHead className="w-28">Motivo</TableHead>
-                <TableHead className="w-28 text-right">Cantidad</TableHead>
+                <TableHead className="w-24 text-right">Cantidad</TableHead>
+                <TableHead className="w-28 text-right">Costo Unit.</TableHead>
+                <TableHead className="w-28 text-right">Total</TableHead>
                 <TableHead className="w-40">Fecha</TableHead>
+                <TableHead className="w-16" />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ingresos.map((mov) => (
-                <TableRow key={mov.id}>
-                  <TableCell>
-                    <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">
-                      {mov.document_ref ?? "—"}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium text-sm">{mov.product?.name ?? "—"}</p>
-                      <p className="text-xs text-muted-foreground font-mono">
-                        {mov.product?.sku}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {mov.warehouse?.name ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">
-                      {REASON_LABELS[mov.reason] ?? mov.reason}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <span className="font-bold text-green-600">
-                      +{Number(mov.quantity) % 1 === 0
-                        ? Number(mov.quantity)
-                        : Number(mov.quantity).toFixed(2)}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {new Date(mov.created_at).toLocaleDateString("es-PE", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {ingresos.map((mov) => {
+                const qty = Number(mov.quantity);
+                const cost = Number(mov.unit_cost);
+                const total = qty * cost;
+                return (
+                  <TableRow key={mov.id}>
+                    <TableCell>
+                      <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">
+                        {mov.document_ref ?? "—"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-sm">{mov.product?.name ?? "—"}</p>
+                        <p className="text-xs text-muted-foreground font-mono">
+                          {mov.product?.sku}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {mov.warehouse?.name ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-xs">
+                        {REASON_LABELS[mov.reason] ?? mov.reason}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="font-bold text-green-600">
+                        +{qty % 1 === 0 ? qty : qty.toFixed(2)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right text-sm text-muted-foreground">
+                      {cost > 0
+                        ? `S/ ${cost.toLocaleString("es-PE", { minimumFractionDigits: 2 })}`
+                        : "—"}
+                    </TableCell>
+                    <TableCell className="text-right text-sm font-medium">
+                      {total > 0
+                        ? `S/ ${total.toLocaleString("es-PE", { minimumFractionDigits: 2 })}`
+                        : "—"}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {new Date(mov.created_at).toLocaleDateString("es-PE", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      >
+                        <Link href={`/almacenes/ingresos/${mov.id}/editar`}>
+                          <Pencil className="h-3.5 w-3.5" />
+                          <span className="sr-only">Editar</span>
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
