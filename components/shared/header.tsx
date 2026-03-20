@@ -16,11 +16,11 @@ interface HeaderProps {
 
 export function Header({ titulo }: HeaderProps) {
   return (
-    <header className="flex h-16 items-center justify-between border-b bg-background px-6">
+    <header className="flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-6">
       {/* Título de página actual */}
       <div>
         {titulo && (
-          <h1 className="text-lg font-semibold text-foreground">{titulo}</h1>
+          <h1 className="text-lg font-semibold text-sidebar-foreground">{titulo}</h1>
         )}
       </div>
 

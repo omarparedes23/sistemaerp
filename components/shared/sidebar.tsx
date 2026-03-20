@@ -164,7 +164,7 @@ function NavGroup({ group }: { group: NavGroup }) {
 
 export function Sidebar() {
   return (
-    <aside className="flex h-full w-64 flex-col bg-sidebar">
+    <aside className="flex h-full w-64 flex-col bg-sidebar border-r border-sidebar-border">
       {/* Logo / Marca */}
       <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-6">
         <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sidebar-primary">

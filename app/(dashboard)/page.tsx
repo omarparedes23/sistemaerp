@@ -28,9 +28,9 @@ const tarjetas = [
     icono: ArrowDownToLine,
     valor: "—",
     href: "/almacenes/ingresos",
-    iconoBg: "bg-violet-50",
-    iconoColor: "text-violet-600",
-    acento: "border-t-violet-500",
+    iconoBg: "bg-amber-50",
+    iconoColor: "text-amber-600",
+    acento: "border-t-amber-500",
   },
   {
     titulo: "Stock bajo",
@@ -38,9 +38,9 @@ const tarjetas = [
     icono: BarChart3,
     valor: "—",
     href: "/almacenes/stocks",
-    iconoBg: "bg-orange-50",
-    iconoColor: "text-orange-600",
-    acento: "border-t-orange-500",
+    iconoBg: "bg-red-50",
+    iconoColor: "text-red-600",
+    acento: "border-t-red-500",
   },
 ];
 

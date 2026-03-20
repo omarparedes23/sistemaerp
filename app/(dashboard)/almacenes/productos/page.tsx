@@ -40,7 +40,7 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Productos</h2>
-          <p className="text-muted-foreground">
+          <p className="text-[#6b7280]">
             Catálogo maestro de artículos con SKU
           </p>
         </div>
@@ -90,7 +90,7 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
             </TableHeader>
             <TableBody>
               {products.map((product) => (
-                <TableRow key={product.id}>
+                <TableRow key={product.id} className="hover:bg-slate-50">
                   <TableCell>
                     <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">
                       {product.sku}
