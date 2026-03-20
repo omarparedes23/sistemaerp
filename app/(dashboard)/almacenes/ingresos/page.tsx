@@ -27,14 +27,14 @@ export default async function IngresosPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Ingresos de Mercadería</h2>
           <p className="text-muted-foreground">
             Historial de entradas de stock al inventario
           </p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/almacenes/ingresos/nuevo">
             <PackagePlus className="mr-2 h-4 w-4" />
             Nuevo Ingreso
@@ -42,7 +42,7 @@ export default async function IngresosPage() {
         </Button>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-lg border bg-card">
         {ingresos.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <ArrowDownToLine className="h-12 w-12 text-muted-foreground/40 mb-4" />
@@ -59,12 +59,12 @@ export default async function IngresosPage() {
               <TableRow>
                 <TableHead>Documento</TableHead>
                 <TableHead>Producto</TableHead>
-                <TableHead>Almacén</TableHead>
-                <TableHead className="w-28">Motivo</TableHead>
+                <TableHead className="hidden sm:table-cell">Almacén</TableHead>
+                <TableHead className="hidden sm:table-cell w-28">Motivo</TableHead>
                 <TableHead className="w-24 text-right">Cantidad</TableHead>
-                <TableHead className="w-28 text-right">Costo Unit.</TableHead>
-                <TableHead className="w-28 text-right">Total</TableHead>
-                <TableHead className="w-40">Fecha</TableHead>
+                <TableHead className="hidden sm:table-cell w-28 text-right">Costo Unit.</TableHead>
+                <TableHead className="hidden sm:table-cell w-28 text-right">Total</TableHead>
+                <TableHead className="hidden md:table-cell w-40">Fecha</TableHead>
                 <TableHead className="w-16" />
               </TableRow>
             </TableHeader>
@@ -88,10 +88,10 @@ export default async function IngresosPage() {
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
+                    <TableCell className="hidden sm:table-cell text-muted-foreground text-sm">
                       {mov.warehouse?.name ?? "—"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge variant="outline" className="text-xs">
                         {REASON_LABELS[mov.reason] ?? mov.reason}
                       </Badge>
@@ -101,17 +101,17 @@ export default async function IngresosPage() {
                         +{qty % 1 === 0 ? qty : qty.toFixed(2)}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right text-sm text-muted-foreground">
+                    <TableCell className="hidden sm:table-cell text-right text-sm text-muted-foreground">
                       {cost > 0
                         ? `S/ ${cost.toLocaleString("es-PE", { minimumFractionDigits: 2 })}`
                         : "—"}
                     </TableCell>
-                    <TableCell className="text-right text-sm font-medium">
+                    <TableCell className="hidden sm:table-cell text-right text-sm font-medium">
                       {total > 0
                         ? `S/ ${total.toLocaleString("es-PE", { minimumFractionDigits: 2 })}`
                         : "—"}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
+                    <TableCell className="hidden md:table-cell text-muted-foreground text-sm">
                       {new Date(mov.created_at).toLocaleDateString("es-PE", {
                         day: "2-digit",
                         month: "short",

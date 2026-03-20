@@ -52,7 +52,7 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
         <ProductSearch defaultValue={q ?? ""} />
       </Suspense>
 
-      <div className="rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-lg border bg-card">
         {products.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <Package className="h-12 w-12 text-muted-foreground/40 mb-4" />
@@ -82,9 +82,9 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
               <TableRow>
                 <TableHead className="w-32">SKU</TableHead>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Marca</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead className="w-24">Unidad</TableHead>
+                <TableHead className="hidden sm:table-cell">Marca</TableHead>
+                <TableHead className="hidden sm:table-cell">Categoría</TableHead>
+                <TableHead className="hidden sm:table-cell w-24">Unidad</TableHead>
                 <TableHead className="w-24 text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -106,21 +106,21 @@ export default async function ProductosPage({ searchParams }: ProductosPageProps
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {product.brand ? (
                       <Badge variant="outline">{product.brand.name}</Badge>
                     ) : (
                       <span className="text-muted-foreground text-sm">—</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {product.category ? (
                       <span className="text-sm">{product.category.name}</span>
                     ) : (
                       <span className="text-muted-foreground text-sm">—</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {product.unit ? (
                       <Badge variant="secondary" className="font-mono">
                         {product.unit.abbreviation}

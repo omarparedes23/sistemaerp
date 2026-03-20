@@ -35,7 +35,7 @@ export default async function StocksPage({ searchParams }: StocksPageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Existencias</h2>
           <p className="text-muted-foreground">
@@ -60,7 +60,7 @@ export default async function StocksPage({ searchParams }: StocksPageProps) {
         <StockFilter warehouses={warehouses} currentWarehouseId={warehouseId} />
       </Suspense>
 
-      <div className="rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-lg border bg-card">
         {stockLevels.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <BarChart3 className="h-12 w-12 text-muted-foreground/40 mb-4" />
@@ -77,7 +77,7 @@ export default async function StocksPage({ searchParams }: StocksPageProps) {
               <TableRow>
                 <TableHead className="w-32">SKU</TableHead>
                 <TableHead>Producto</TableHead>
-                <TableHead>Almacén</TableHead>
+                <TableHead className="hidden sm:table-cell">Almacén</TableHead>
                 <TableHead className="w-28 text-right">Stock Actual</TableHead>
                 <TableHead className="w-24">Estado</TableHead>
               </TableRow>
@@ -98,7 +98,7 @@ export default async function StocksPage({ searchParams }: StocksPageProps) {
                     <TableCell className="font-medium">
                       {stock.product?.name ?? "—"}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="hidden sm:table-cell text-muted-foreground">
                       {stock.warehouse?.name ?? "—"}
                     </TableCell>
                     <TableCell className="text-right">

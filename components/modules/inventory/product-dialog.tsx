@@ -87,7 +87,7 @@ export function ProductDialog({ product, brands, categories, units }: ProductDia
           <input type="hidden" name="unit_id" value={unitId} />
 
           {/* SKU y Nombre en grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="sku">SKU</Label>
               <Input
@@ -134,7 +134,7 @@ export function ProductDialog({ product, brands, categories, units }: ProductDia
           </div>
 
           {/* Marca y Categoría en grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="brand_id_select">Marca</Label>
               <Select value={brandId} onValueChange={setBrandId}>

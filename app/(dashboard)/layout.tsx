@@ -16,8 +16,8 @@ export default function DashboardLayout({
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header />
 
-        {/* Breadcrumbs */}
-        <div className="border-b bg-muted/30 px-6 py-2">
+        {/* Breadcrumbs — ocultos en móvil */}
+        <div className="hidden sm:block border-b bg-muted/30 px-6 py-2">
           <Breadcrumbs />
         </div>
 

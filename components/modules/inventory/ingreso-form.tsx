@@ -239,8 +239,8 @@ export function IngresoForm({
           )}
         </div>
 
-        {/* Encabezados de columna */}
-        <div className="grid grid-cols-[1fr_110px_130px_40px] gap-3 px-1">
+        {/* Encabezados de columna — ocultos en móvil */}
+        <div className="hidden sm:grid grid-cols-[1fr_110px_130px_40px] gap-3 px-1">
           <span className="text-xs font-medium text-muted-foreground">Producto</span>
           <span className="text-xs font-medium text-muted-foreground">Cantidad</span>
           <span className="text-xs font-medium text-muted-foreground">Costo Unit. (S/)</span>
@@ -251,7 +251,7 @@ export function IngresoForm({
           {items.map((item) => (
             <div
               key={item.id}
-              className="grid grid-cols-[1fr_110px_130px_40px] items-center gap-3"
+              className="flex flex-col gap-2 rounded-md border p-3 sm:border-0 sm:p-0 sm:grid sm:grid-cols-[1fr_110px_130px_40px] sm:items-center sm:gap-3"
             >
               {/* Select de producto */}
               <Select
@@ -282,39 +282,48 @@ export function IngresoForm({
                 </SelectContent>
               </Select>
 
-              {/* Cantidad */}
-              <Input
-                type="number"
-                min="0.01"
-                step="0.01"
-                placeholder="0"
-                value={item.quantity}
-                onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
-                className="text-right"
-              />
+              {/* Cantidad, costo y eliminar — en fila en móvil */}
+              <div className="grid grid-cols-[1fr_1fr_40px] gap-2 sm:contents">
+                {/* Cantidad */}
+                <div className="sm:contents">
+                  <label className="text-xs font-medium text-muted-foreground sm:hidden">Cantidad</label>
+                  <Input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    placeholder="0"
+                    value={item.quantity}
+                    onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
+                    className="text-right"
+                  />
+                </div>
 
-              {/* Costo unitario */}
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={item.unit_cost}
-                onChange={(e) => updateItem(item.id, "unit_cost", e.target.value)}
-                className="text-right"
-              />
+                {/* Costo unitario */}
+                <div className="sm:contents">
+                  <label className="text-xs font-medium text-muted-foreground sm:hidden">Costo Unit. (S/)</label>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={item.unit_cost}
+                    onChange={(e) => updateItem(item.id, "unit_cost", e.target.value)}
+                    className="text-right"
+                  />
+                </div>
 
-              {/* Botón eliminar fila */}
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => removeItem(item.id)}
-                disabled={items.length === 1 || isEdit}
-                className="h-10 w-10 text-muted-foreground hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+                {/* Botón eliminar fila */}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeItem(item.id)}
+                  disabled={items.length === 1 || isEdit}
+                  className="h-10 w-10 text-muted-foreground hover:text-destructive self-end"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           ))}
         </div>
@@ -349,16 +358,17 @@ export function IngresoForm({
         </p>
       )}
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <Button
           type="button"
           variant="outline"
           onClick={() => router.push("/almacenes/ingresos")}
           disabled={isPending}
+          className="w-full sm:w-auto"
         >
           Cancelar
         </Button>
-        <Button type="submit" disabled={isPending} size="lg">
+        <Button type="submit" disabled={isPending} size="lg" className="w-full sm:w-auto">
           {isPending ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : isEdit ? (

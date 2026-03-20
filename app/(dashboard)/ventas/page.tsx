@@ -27,14 +27,14 @@ export default async function VentasPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Ventas</h2>
           <p className="text-muted-foreground">
             Historial de Facturas y Boletas emitidas
           </p>
         </div>
-        <Button asChild>
+        <Button asChild className="w-full sm:w-auto">
           <Link href="/ventas/nueva">
             <FilePlus2 className="mr-2 h-4 w-4" />
             Nueva Venta
@@ -42,7 +42,7 @@ export default async function VentasPage() {
         </Button>
       </div>
 
-      <div className="rounded-lg border bg-card">
+      <div className="overflow-x-auto rounded-lg border bg-card">
         {sales.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <p className="text-muted-foreground text-sm">
@@ -59,12 +59,12 @@ export default async function VentasPage() {
               <TableRow>
                 <TableHead className="w-32">Comprobante</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead className="w-36">Almacén</TableHead>
-                <TableHead className="w-28 text-right">Subtotal</TableHead>
-                <TableHead className="w-24 text-right">IGV</TableHead>
+                <TableHead className="hidden sm:table-cell w-36">Almacén</TableHead>
+                <TableHead className="hidden sm:table-cell w-28 text-right">Subtotal</TableHead>
+                <TableHead className="hidden sm:table-cell w-24 text-right">IGV</TableHead>
                 <TableHead className="w-28 text-right">Total</TableHead>
                 <TableHead className="w-24">Estado</TableHead>
-                <TableHead className="w-36">Fecha</TableHead>
+                <TableHead className="hidden sm:table-cell w-36">Fecha</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -108,17 +108,17 @@ export default async function VentasPage() {
                     </TableCell>
 
                     {/* Almacén */}
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
                       {warehouse?.name ?? "—"}
                     </TableCell>
 
                     {/* Subtotal */}
-                    <TableCell className="text-right text-sm tabular-nums">
+                    <TableCell className="hidden sm:table-cell text-right text-sm tabular-nums">
                       S/ {fmt(sale.subtotal)}
                     </TableCell>
 
                     {/* IGV */}
-                    <TableCell className="text-right text-sm tabular-nums text-muted-foreground">
+                    <TableCell className="hidden sm:table-cell text-right text-sm tabular-nums text-muted-foreground">
                       S/ {fmt(sale.tax_total)}
                     </TableCell>
 
@@ -139,7 +139,7 @@ export default async function VentasPage() {
                     </TableCell>
 
                     {/* Fecha */}
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="hidden sm:table-cell text-sm text-muted-foreground">
                       {new Date(sale.created_at).toLocaleDateString("es-PE", {
                         day: "2-digit",
                         month: "short",
